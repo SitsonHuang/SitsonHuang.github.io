@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Text</title>
+</head>
+<body>
+    <textarea id="textInput" style="width: 100%; height: 80vh;"></textarea>
+    <button onclick="uploadText()">保存</button>
+
+    <script>
+        async function uploadText() {
+            const token = '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';
+            const username = 'Sixfeet6';
+            const repo = 'paste-board';
+            const path = 'text.txt';
+            const message = 'Update text';
+            const content = btoa(document.getElementById('textInput').value);
+
+            try {
+                // 获取文件的 SHA 值
+                const shaResponse = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+
+                let sha = '';
+                if (shaResponse.ok) {
+                    const shaData = await shaResponse.json();
+                    sha = shaData.sha;
+                }
+
+                // 上传文件
+                const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/${path}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        content: content,
+                        sha: sha
+                    })
+                });
+
+                if (response.ok) {
+                    alert('文本已保存');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error:', errorData);
+                    alert(`保存失败: ${errorData.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('保存失败');
+            }
+        }
+    </script>
+</body>
+</html>
